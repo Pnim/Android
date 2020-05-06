@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_view_text">8dp</dimen>
+    <dimen name="height_layout">0dp</dimen>
+    <dimen name="text_Size">30sp</dimen>
+    <dimen name="width_layout">0dp</dimen>
+</resources>
