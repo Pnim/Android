@@ -18,6 +18,9 @@ public class HtmlParser {
         for (Element element: div)
         {
             String dataHoliday = element.select( "span").get(0).text();
+            if (date.startsWith("0")) {
+                date = date.substring(1);
+            }
             if (dataHoliday.equals(date)){
                 Elements month = element.siblingElements();
                 Element monthElement = month.first();

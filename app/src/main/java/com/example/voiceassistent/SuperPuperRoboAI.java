@@ -22,30 +22,18 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class SuperPuperRoboAI {
 
-    private static String replaceWhiteSpace(String text) {
+    public static String replaceWhiteSpace(String text) {
         return text.replaceAll("[\\s]+", " ");
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public static void getAnswerForQuestionBySuperPuperRoboAI(String question, Consumer<String> addMessageFunc ) {
-        question = replaceWhiteSpace(question).toLowerCase();
-        ArrayList<String> answers = new ArrayList<>();
-        answers.addAll(processQuestion(question));
-        for (int i = 0; i < answers.size(); i++) {
-            addMessageFunc.accept(answers.get(i));
-        }
     }
 
     public static String normalizeEnding(int b) {
         int data = Math.abs(b);
-        if(data >= 11 && data <= 14 )
-            return " градусов ";
-        if(data % 10 == 0 || data % 10 >= 5 && data %10 <= 9)
-            return " градусов ";
+        if(data % 10 == 0 || (data >= 10 && data <= 20))
+            return "градусов ";
         if(data % 10 == 1)
-            return " градус ";
-        if(data >= 2 && data <=4)
-            return " градуса ";
+            return "градус ";
+        if(data >= 22 && data <= 4)
+            return "градуса ";
         return "";
     }
 
@@ -93,93 +81,92 @@ public class SuperPuperRoboAI {
         return  date;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private static ArrayList<String> processQuestion(String question) {
-        final ArrayList<String> result = new ArrayList<>();
+    public static void processQuestion(String question, final Consumer<String> addMessageFunc) {
+        question = question.toLowerCase();
         if (question.contains("привет")) {
-            result.add("Привет!");
+            addMessageFunc.accept("Привет!");
         }
-        if (question.contains("как дела")) {
-            result.add("Отлично, как у тебя?");
+        else if (question.contains("как дела")) {
+            addMessageFunc.accept("Отлично, как у тебя?");
         }
-        if (question.contains("не очень")) {
-            result.add("Почему не очень?");
+        else if (question.contains("не очень")) {
+            addMessageFunc.accept("Почему не очень?");
         }
-        if (question.contains("чем занимаешься")) {
-            result.add("Сижу.");
+        else if (question.contains("чем занимаешься")) {
+            addMessageFunc.accept("Сижу.");
         }
-        if (question.contains("как настроение")) {
-            result.add("Как у человека");
+        else if (question.contains("как настроение")) {
+            addMessageFunc.accept("Как у человека");
         }
-        if (question.contains("расскажи о себе")) {
-            result.add("Самый настоящий! ИСКУСТВЕННЫЙ! Интеллект.");
+        else if (question.contains("расскажи о себе")) {
+            addMessageFunc.accept("Самый настоящий! ИСКУСТВЕННЫЙ! Интеллект.");
         }
-        if (question.contains("сегодня день")) {
-            result.add("Сегодня " +new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+        else if (question.contains("сегодня день")) {
+            addMessageFunc.accept("Сегодня " +new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
         }
-        if (question.contains("который час")) {
-            result.add("Сейчас " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
+        else if (question.contains("который час")) {
+            addMessageFunc.accept("Сейчас " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
         }
-        if (question.contains("какая погода в")) {
+        else if (question.contains("погода в городе")) {
             try {
-                Pattern pattern = Pattern.compile("какая погода в (.+)", Pattern.CASE_INSENSITIVE);
+                Pattern pattern = Pattern.compile("погода в городе (.+)", Pattern.CASE_INSENSITIVE);
                 Matcher match = pattern.matcher(question);
-                if (match.find() || match.group(1) != null) {
+                if (match.find()) {
                     String cityName = match.group(1);
-                    ForecastToString.getForecast(cityName, new Consumer<String>() {
-                        @Override
-                        public void accept(String s) {
-                            if (s != null) {
-                                result.add(s);
-                            } else{
-                                result.add("Не знаю:(");
-                            }
+                    ForecastToString.getForecast(cityName, s -> {
+                        if (s != null) {
+                            addMessageFunc.accept(s);
+                        } else {
+                            addMessageFunc.accept("Не знаю:(");
                         }
                     });
                 }
             }
             catch (Exception e) {
-                result.add("Не получается узнать :(");
+                addMessageFunc.accept("Не получается узнать :(");
             }
         }
-        if (question.contains("перевести число")) {
+        else if (question.contains("перевести число")) {
             try {
                 final  String number = question.replaceAll("[^0-9\\+]", "");
                 String finalQuestion = question;
-                ConvertedNumberToString.getConvertNumber(number, new java.util.function.Consumer<String>() {
-                    @Override
-                    public void accept(String s) {
-                        if (s != null) {
-                            result.add(s);
-                        } else {
-                            result.add("Не получается!");
-                        }
+                ConvertedNumberToString.getConvertNumber(number, s -> {
+                    if (s != null) {
+                        addMessageFunc.accept(s);
+                    } else {
+                        addMessageFunc.accept("Не получается узнать!");
                     }
                 });
             }
             catch (Exception e) {
-                result.add("Не получается узнать :(");
+                addMessageFunc.accept("Не получается узнать :(");
             }
         }
-        if (question.contains("праздник")) {
+        else if (question.contains("праздник")) {
             try {
+                String[] ans = {""};
                 String findDate = getDate(question);
-                String res = "";
-                String[] data = findDate.split(",");
-                for (int i = 0; i < data.length; i++) {
-                    try {
-                        res += data[i] +": " + HtmlParser.getHoliday(data[i]) + "\n";
+                String[] strings = findDate.split(",");
+                Observable.fromCallable(() -> {
+                    ans[0] = "";
+                    for (int i = 0; i < strings.length; i++) {
+                        try {
+                            ans[0] += strings[i] +": " + HtmlParser.getHoliday(strings[i]) + "\n";
 
-                    } catch (IOException e) {
-                        res = "Упс, ошибочка...";
+                        } catch (IOException e) {
+                            ans[0] = "Не получается узнать!";
+                        }
                     }
-                }
-                result.add(res);
+                    return ans[0];
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((res)->{
+                    addMessageFunc.accept(ans[0]);
+                });
             } catch (Exception e) {
-                result.add("Не получается узнать :(");
+                addMessageFunc.accept("Не получается узнать :(");
             }
-
         }
-        return result;
     }
 }

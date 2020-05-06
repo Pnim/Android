@@ -61,7 +61,12 @@ public class MainActivity extends AppCompatActivity {
         fillMessages(cursor);
         cursor.close();
 
-        activateSuperPuperRoboAI();
+        sendQuestionButton.setOnClickListener(view -> processSendMessageBySuperPuperAI());
+        speaker = new TextToSpeech(getApplicationContext(), i -> {
+            if(i != TextToSpeech.ERROR){
+                speaker.setLanguage(new Locale("ru"));
+            }
+        });
     }
 
     private int getThemeMode(Boolean isDayTheme) {
@@ -73,40 +78,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void activateSuperPuperRoboAI() {
-        sendQuestionButton.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void onClick(View view) {
-                processSendMessageBySuperPuperAI();
-            }
-        });
-        speaker = new TextToSpeech(getApplicationContext(), new
-                TextToSpeech.OnInitListener() {
-                    @Override
-                    public void onInit(int i) {
-                        if(i != TextToSpeech.ERROR){
-                            speaker.setLanguage(new Locale("ru"));
-                        }
-                    }
-                });
-    }
-
     private void processSendMessageBySuperPuperAI() {
-        String question = questionField.getText().toString();
-        messageAdapter.messages.add(new Message(question, Calendar.getInstance().getTime(),true));
-        SuperPuperRoboAI.getAnswerForQuestionBySuperPuperRoboAI(question, new Consumer<String>() {
-            @Override
-            public void accept(String str) {
+        final String question = questionField.getText().toString();
+        try {
+            final String resultQuestion = SuperPuperRoboAI.replaceWhiteSpace(question);
+            messageAdapter.messages.add(new Message(resultQuestion, Calendar.getInstance().getTime(),true));
+            messageAdapter.notifyDataSetChanged();
+            messageList.scrollToPosition(messageAdapter.messages.size() - 1);
+            questionField.setText("");
+            SuperPuperRoboAI.processQuestion(resultQuestion, str -> {
                 messageAdapter.messages.add(new Message(str, Calendar.getInstance().getTime(), false));
                 speaker.speak(str, TextToSpeech.QUEUE_FLUSH, null, null);
-            }
-        });
-        messageAdapter.notifyDataSetChanged();
-        messageList.scrollToPosition(messageAdapter.messages.size() - 1);
-        questionField.setText("");
-    }
+                messageAdapter.notifyDataSetChanged();
+                messageList.scrollToPosition(messageAdapter.messages.size() - 1);
+                questionField.setText("");
+            });
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 
+    }
 
     private void fillMessages(Cursor cursor) {
         if (cursor.moveToFirst()) {
@@ -151,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestoreInstanceState(Bundle state) {
         super.onRestoreInstanceState(state);
-        Log.i("LOG", "onRestoreInstanceState");
         messageAdapter = (MessageAdapter) (state.getSerializable("Iitschaat"));
         messageList.setAdapter(messageAdapter);
     }
