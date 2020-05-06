@@ -25,7 +25,9 @@ public class HtmlParser {
                 Elements month = element.siblingElements();
                 Element monthElement = month.first();
                 String li = monthElement.select("li").text();
-                result = li;
+                if (li != null && li != "") {
+                    result = li;
+                }
                 break;
             }
         }

@@ -1,9 +1,10 @@
 package com.example.voiceassistent;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-public class MessageModel {
+public class MessageModel implements Serializable {
     public String text;
     public String  dateTime;
     public int wasSend;
