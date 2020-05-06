@@ -28,11 +28,11 @@ public class SuperPuperRoboAI {
 
     public static String normalizeEnding(int b) {
         int data = Math.abs(b);
-        if(data % 10 == 0 || (data >= 10 && data <= 20))
+        if(data % 10 == 0 || (data >= 5 && data <= 20))
             return "градусов ";
         if(data % 10 == 1)
             return "градус ";
-        if(data >= 22 && data <= 4)
+        if(data >= 22 || data <= 4)
             return "градуса ";
         return "";
     }
